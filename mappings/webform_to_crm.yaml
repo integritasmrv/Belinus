@@ -1,0 +1,110 @@
+# Generic webform mapping - handles lead + contact + company in one pass
+# Passthrough fields captured in entity_attributes under original field names
+
+targets:
+  lead:
+    table: nb_crm_leads
+    fields:
+      - source: first_name
+        target: name
+        transform: strip
+      - source: email
+        target: email
+        transform: strip
+      - source: company
+        target: company
+        transform: strip
+      - source: phone
+        target: phone
+        transform: strip
+      - source: function
+        target: title
+        transform: strip
+      - source: message
+        target: description
+        transform: strip
+      - source: form_id
+        target: source
+        transform: strip
+      - source: form_id
+        target: status
+        transform: const:new
+      - source: product_interest
+        target: entity_attributes.product_interest
+        transform: strip
+      - source: source_url
+        target: entity_attributes.source_url
+        transform: strip
+      - source: first_name
+        target: entity_attributes.first_name
+        transform: strip
+      - source: last_name
+        target: entity_attributes.last_name
+        transform: strip
+
+  contact:
+    table: nb_crm_contacts
+    fields:
+      - source: first_name
+        target: label
+        transform: strip
+      - source: last_name
+        target: entity_attributes.last_name
+        transform: strip
+      - source: email
+        target: entity_attributes.email
+        transform: strip
+      - source: phone
+        target: entity_attributes.phone
+        transform: strip
+      - source: function
+        target: entity_attributes.job_title
+        transform: strip
+      - source: company
+        target: entity_attributes.company_name
+        transform: strip
+      - source: company_website
+        target: entity_attributes.company_website
+        transform: strip
+      - source: form_id
+        target: lead_source
+        transform: strip
+      - source: source_url
+        target: entity_attributes.source_url
+        transform: strip
+      - source: message
+        target: entity_attributes.message
+        transform: strip
+      - source: product_interest
+        target: entity_attributes.product_interest
+        transform: strip
+
+  company:
+    table: nb_crm_customers
+    fields:
+      - source: company
+        target: label
+        transform: strip
+      - source: company_website
+        target: entity_attributes.website
+        transform: strip
+      - source: phone
+        target: entity_attributes.phone
+        transform: strip
+      - source: company
+        target: entity_attributes.name
+        transform: strip
+      - source: form_id
+        target: source_system
+        transform: const:webform
+      - source: source_url
+        target: entity_attributes.source_url
+        transform: strip
+      - source: message
+        target: entity_attributes.description
+        transform: strip
+      - source: product_interest
+        target: entity_attributes.product_interest
+        transform: strip
+
+passthrough: true
