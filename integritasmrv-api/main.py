@@ -58,9 +58,10 @@ async def webhook_hubspot(payload: HubspotWebhookPayload, request: Request):
             payload.data.get("properties", {})
             .get("hs_object_id")
         )
+        wf_id = f"ingest-hubspot-{business_key}"
 
         client = await Client.connect(TEMPORAL_ADDR)
-        wf_id = await client.start_workflow(
+        await client.start_workflow(
             "IngestWorkflow",
             {
                 "source": payload.source,
@@ -69,11 +70,11 @@ async def webhook_hubspot(payload: HubspotWebhookPayload, request: Request):
                 "business_key": str(business_key) if business_key else None,
                 "data": payload.data,
             },
-            id=f"ingest-hubspot-{business_key}",
+            id=wf_id,
             task_queue=TASK_QUEUE,
         )
 
-        return {"status": "accepted", "workflow_id": str(wf_id), "target_crm": target_crm}
+        return {"status": "accepted", "workflow_id": wf_id, "target_crm": target_crm}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -82,13 +83,14 @@ async def webhook_hubspot(payload: HubspotWebhookPayload, request: Request):
 async def ingest_webform(request: Request):
     try:
         payload = await request.json()
-        
+
         email = payload.get("your-email") or payload.get("email", "unknown")
         first_name = payload.get("first-name", "")
         last_name = payload.get("last-name", "")
-        
+        wf_id = f"webform-{email}-{int(time.time())}"
+
         client = await Client.connect(TEMPORAL_ADDR)
-        wf_id = await client.start_workflow(
+        await client.start_workflow(
             "IngestWorkflow",
             {
                 "source": "webform",
@@ -110,11 +112,11 @@ async def ingest_webform(request: Request):
                     "form_title": payload.get("form_title", ""),
                 },
             },
-            id=f"webform-{email}-{int(time.time())}",
+            id=wf_id,
             task_queue=TASK_QUEUE,
         )
 
-        return {"status": "accepted", "workflow_id": str(wf_id)}
+        return {"status": "accepted", "workflow_id": wf_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -122,8 +124,9 @@ async def ingest_webform(request: Request):
 @app.post("/writeback")
 async def writeback(payload: WritebackPayload, request: Request):
     try:
+        wf_id = f"writeback-{payload.entity_id}"
         client = await Client.connect(TEMPORAL_ADDR)
-        wf_id = await client.start_workflow(
+        await client.start_workflow(
             "WritebackWorkflow",
             {
                 "entity_id": payload.entity_id,
@@ -133,10 +136,10 @@ async def writeback(payload: WritebackPayload, request: Request):
                 "enriched_data": payload.enriched_data,
                 "external_ids": payload.external_ids,
             },
-            id=f"writeback-{payload.entity_id}",
+            id=wf_id,
             task_queue=TASK_QUEUE,
         )
-        return {"status": "accepted", "workflow_id": str(wf_id)}
+        return {"status": "accepted", "workflow_id": wf_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -160,8 +163,9 @@ async def enrichiq_writeback(payload: EnrichIQWriteback, request: Request):
             "last_enriched_at": payload.trusted_attributes.get("last_enriched_at"),
         }
 
+        wf_id = f"writeback-enrichiq-{entity_id}"
         client = await Client.connect(TEMPORAL_ADDR)
-        wf_id = await client.start_workflow(
+        await client.start_workflow(
             "WritebackWorkflow",
             {
                 "entity_id": entity_id,
@@ -171,10 +175,10 @@ async def enrichiq_writeback(payload: EnrichIQWriteback, request: Request):
                 "enriched_data": enriched_data,
                 "external_ids": external_ids,
             },
-            id=f"writeback-enrichiq-{entity_id}",
+            id=wf_id,
             task_queue=TASK_QUEUE,
         )
-        return {"status": "accepted", "workflow_id": str(wf_id)}
+        return {"status": "accepted", "workflow_id": wf_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
