@@ -1,7 +1,8 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from temporalio.client import Client
-from temporalio.worker import Worker, UnsandboxedWorkflowRunner
+from temporalio.worker import Worker, LocalActivityExecutor
+from temporalio.worker._activity_runner import PooledActivityRunner
 
 from workers.workflows.ingest_workflow import IngestWorkflow
 from workers.workflows.writeback_workflow import WritebackWorkflow
@@ -19,6 +20,10 @@ async def main():
 
     client = await Client.connect(temporal_addr)
 
+    activity_runner = PooledActivityRunner(
+        executor=ThreadPoolExecutor(max_workers=10),
+    )
+
     worker = Worker(
         client,
         task_queue=task_queue,
@@ -35,8 +40,7 @@ async def main():
             update_hubspot_company,
             trigger_enrichiq,
         ],
-        activity_executor=ThreadPoolExecutor(max_workers=10),
-        workflow_runner=UnsandboxedWorkflowRunner(),
+        activity_runner=activity_runner,
     )
 
     print(f"Temporal worker connecting to {temporal_addr}, namespace=Integritasmrv, task_queue={task_queue}")
