@@ -51,15 +51,13 @@ function belinus_chatwoot_widget() {
       (function(d,t) {
         var BASE_URL = "https://chat.belinus.net";
         var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
-        g.src = BASE_URL + "/packs/sdk.js";
-        g.async = 1;
+        g.src = BASE_URL + "/packs/js/sdk.js";
+        g.async = true;
         s.parentNode.insertBefore(g, s);
         g.onload = function() {
           window.chatwootSDK.run({
-            websiteToken: '4VkiBbVD6xdvbAyKOMof',
-            baseUrl: BASE_URL,
-            locale: 'en',
-            useBrowserLanguage: true
+            websiteToken: '6i5YccAmStYQKEGRYJ52aZRb',
+            baseUrl: BASE_URL
           });
         };
       })(document, "script");
