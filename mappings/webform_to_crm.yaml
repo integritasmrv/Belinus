@@ -17,7 +17,7 @@ targets:
       - source: phone
         target: phone
         transform: strip
-      - source: function
+      - source: job_title
         target: title
         transform: strip
       - source: message
@@ -57,7 +57,7 @@ targets:
       - source: phone
         target: entity_attributes.phone
         transform: strip
-      - source: function
+      - source: job_title
         target: entity_attributes.job_title
         transform: strip
       - source: company
