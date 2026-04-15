@@ -1,0 +1,40 @@
+/* CF7 Form Dark Text Fix */
+.wpcf7-form input[type=text],
+.wpcf7-form input[type=email],
+.wpcf7-form input[type=tel],
+.wpcf7-form select,
+.wpcf7-form textarea {
+    color: #333 !important;
+    background-color: #fff !important;
+    border-color: #ccc !important;
+}
+
+.wpcf7-form label {
+    color: #333 !important;
+}
+
+/* Force dark text on test pages */
+.page-id-58 .wpcf7-form input[type=text],
+.page-id-58 .wpcf7-form input[type=email],
+.page-id-58 .wpcf7-form input[type=tel],
+.page-id-58 .wpcf7-form select,
+.page-id-58 .wpcf7-form textarea,
+.wpcf7-form input[type=text],
+.wpcf7-form input[type=email],
+.wpcf7-form input[type=tel],
+.wpcf7-form select,
+.wpcf7-form textarea {
+    color: #333 !important;
+    background-color: #fff !important;
+    border: 1px solid #ccc !important;
+}
+
+.wpcf7-form label,
+.wpcf7-form .wpcf7-list-item-label {
+    color: #333 !important;
+}
+
+/* Make form labels readable */
+.wpcf7-form p {
+    color: #333;
+}
