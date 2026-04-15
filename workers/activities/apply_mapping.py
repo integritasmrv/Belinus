@@ -64,6 +64,9 @@ def _apply_single_mapping(payload: dict, config: dict, passthrough: bool = False
             if key not in explicit_sources and value is not None:
                 _set_nested(result, f"entity_attributes.{key}", value)
     
+    if "table" in config:
+        result["table"] = config["table"]
+    
     return result
 
 
