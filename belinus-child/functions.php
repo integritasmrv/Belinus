@@ -41,3 +41,28 @@ function poweriq_cf7_to_crm($contact_form,&$abort,$submission){
         error_log("[PowerIQ CF7] Ingest API failed: ".$response->get_error_message());
     }
 }
+
+// Chatwoot Unified Widget
+add_action('wp_footer', 'belinus_chatwoot_widget');
+function belinus_chatwoot_widget() {
+    if (is_admin()) return;
+    ?>
+    <script>
+      (function(d,t) {
+        var BASE_URL = "https://chat.belinus.net";
+        var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
+        g.src = BASE_URL + "/packs/sdk.js";
+        g.async = 1;
+        s.parentNode.insertBefore(g, s);
+        g.onload = function() {
+          window.chatwootSDK.run({
+            websiteToken: '4VkiBbVD6xdvbAyKOMof',
+            baseUrl: BASE_URL,
+            locale: 'en',
+            useBrowserLanguage: true
+          });
+        };
+      })(document, "script");
+    </script>
+    <?php
+}
