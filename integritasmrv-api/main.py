@@ -208,9 +208,9 @@ async def chatwoot_webhook(request: Request):
                 "http://intelligence-lightrag:9621/query/data",
                 method="POST",
                 headers={"Content-Type": "application/json", "LIGHTRAG-WORKSPACE": "poweriq"},
-                body={"query": user_message, "mode": "hybrid"}
+                json_body={"query": user_message, "mode": "hybrid"}
             )
-            rag_data = await rag_response.json()
+            rag_data = rag_response.json()
             rag_context = "\n\n".join([c.get("content", "") for c in rag_data.get("data", {}).get("chunks", [])])
         except Exception as e:
             print(f"RAG error: {e}")
@@ -233,7 +233,7 @@ Context from knowledge base:
                     "Authorization": "Bearer sk-litellm-aifabric-secret",
                     "Content-Type": "application/json"
                 },
-                body={
+                json_body={
                     "model": "gpu/qwen2.5-32b",
                     "messages": [
                         {"role": "system", "content": system_prompt},
@@ -243,7 +243,7 @@ Context from knowledge base:
                     "temperature": 0.7
                 }
             )
-            llm_data = await llm_response.json()
+            llm_data = llm_response.json()
             if llm_data.get("error"):
                 raise Exception(llm_data["error"].get("message", "LLM error"))
             
@@ -291,18 +291,19 @@ Context from knowledge base:
         return {"handled": False, "error": str(e)}
 
 
-async def fetch_with_timeout(url, method="GET", headers=None, body=None, timeout=30.0):
+async def fetch_with_timeout(url, method="GET", headers=None, json_body=None, timeout=30.0):
     import httpx
     async with httpx.AsyncClient() as client:
         if method == "POST":
-            return await client.post(url, json=body, headers=headers, timeout=timeout)
-        return await client.get(url, headers=headers, timeout=timeout)
+            response = await client.post(url, json=json_body, headers=headers, timeout=timeout)
+        else:
+            response = await client.get(url, headers=headers, timeout=timeout)
+        return response
 
 
 @app.get("/health")
 async def health():
     return {"status": "ok", "temporal": TEMPORAL_ADDR, "namespace": "Integritasmrv"}
-
 
 
 if __name__ == "__main__":
