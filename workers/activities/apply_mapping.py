@@ -1,5 +1,4 @@
 import yaml
-import polars as pl
 from pathlib import Path
 from typing import Any
 from temporalio import activity
@@ -52,21 +51,21 @@ def _set_nested(data: dict, path: str, value: Any) -> None:
 def _apply_single_mapping(payload: dict, config: dict, passthrough: bool = False) -> dict:
     result = {}
     explicit_sources = set()
-    
+
     for field in config.get("fields", []):
         value = _extract(payload, field["source"])
         value = _transform(value, field.get("transform", ""))
         _set_nested(result, field["target"], value)
         explicit_sources.add(field["source"])
-    
+
     if passthrough:
         for key, value in payload.items():
             if key not in explicit_sources and value is not None:
                 _set_nested(result, f"entity_attributes.{key}", value)
-    
+
     if "table" in config:
         result["table"] = config["table"]
-    
+
     return result
 
 
@@ -88,6 +87,7 @@ def apply_mapping(payload: dict, mapping_name: str) -> dict:
 
 @activity.defn
 def apply_mapping_batch(file_path: str, mapping_name: str) -> list[dict]:
+    import polars as pl
     config = yaml.safe_load(
         Path(f"/opt/integritasmrv/mappings/{mapping_name}.yaml").read_text()
     )
