@@ -183,9 +183,126 @@ async def enrichiq_writeback(payload: EnrichIQWriteback, request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post("/chatwoot/webhook")
+async def chatwoot_webhook(request: Request):
+    try:
+        payload = await request.json()
+        
+        if payload.get("event") != "message_created":
+            return {"handled": False, "reason": "not message_created"}
+        
+        message = payload.get("message", {})
+        if message.get("message_type") != "incoming":
+            return {"handled": False, "reason": "not incoming"}
+        
+        user_message = message.get("content", "")
+        conversation_id = payload.get("conversation_id")
+        account_id = payload.get("account_id")
+        
+        if not user_message or not conversation_id:
+            return {"handled": False, "reason": "missing data"}
+        
+        rag_context = ""
+        try:
+            rag_response = await fetch_with_timeout(
+                "http://intelligence-lightrag:9621/query/data",
+                method="POST",
+                headers={"Content-Type": "application/json", "LIGHTRAG-WORKSPACE": "poweriq"},
+                body={"query": user_message, "mode": "hybrid"}
+            )
+            rag_data = await rag_response.json()
+            rag_context = "\n\n".join([c.get("content", "") for c in rag_data.get("data", {}).get("chunks", [])])
+        except Exception as e:
+            print(f"RAG error: {e}")
+        
+        system_prompt = f"""You are Belinus AI, a helpful sales assistant for Belinus - a company specializing in battery storage solutions and energy systems.
+
+If the user wants to speak with a human agent, respond with exactly: [TRANSFER]
+
+Use the context below to answer questions about Belinus products and services.
+If you don't know something, be honest and offer to connect them with a human.
+
+Context from knowledge base:
+{rag_context if rag_context else 'No specific context available.'}"""
+        
+        try:
+            llm_response = await fetch_with_timeout(
+                "http://litellm-managed:4000/v1/chat/completions",
+                method="POST",
+                headers={
+                    "Authorization": "Bearer sk-litellm-aifabric-secret",
+                    "Content-Type": "application/json"
+                },
+                body={
+                    "model": "gpu/qwen2.5-32b",
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_message}
+                    ],
+                    "max_tokens": 500,
+                    "temperature": 0.7
+                }
+            )
+            llm_data = await llm_response.json()
+            if llm_data.get("error"):
+                raise Exception(llm_data["error"].get("message", "LLM error"))
+            
+            ai_response = llm_data.get("choices", [{}])[0].get("message", {}).get("content", "I'm having trouble responding right now.")
+            should_handoff = "[TRANSFER]" in ai_response
+            ai_response = ai_response.replace("[TRANSFER]", "").strip()
+        except Exception as e:
+            print(f"LLM error: {e}")
+            ai_response = "I'm having trouble responding right now. A human agent will be with you shortly."
+            should_handoff = True
+        
+        try:
+            import httpx
+            async with httpx.AsyncClient() as client:
+                login_resp = await client.post(
+                    "https://chat.belinus.net/auth/sign_in",
+                    json={"email": "admin@belinus.net", "password": "BelinusAdmin123!"},
+                    timeout=10.0
+                )
+                login_data = login_resp.json()
+                token = login_data.get("data", {}).get("access_token")
+                
+                if token:
+                    if should_handoff:
+                        await client.patch(
+                            f"https://chat.belinus.net/api/v1/accounts/{account_id}/conversations/{conversation_id}",
+                            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+                            json={"status": "open"},
+                            timeout=10.0
+                        )
+                    
+                    await client.post(
+                        f"https://chat.belinus.net/api/v1/accounts/{account_id}/conversations/{conversation_id}/messages",
+                        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+                        json={"content": ai_response, "message_type": "outgoing"},
+                        timeout=10.0
+                    )
+        except Exception as e:
+            print(f"Chatwoot post error: {e}")
+        
+        return {"handled": True, "reply": ai_response, "handoff": should_handoff}
+        
+    except Exception as e:
+        print(f"Webhook error: {e}")
+        return {"handled": False, "error": str(e)}
+
+
+async def fetch_with_timeout(url, method="GET", headers=None, body=None, timeout=30.0):
+    import httpx
+    async with httpx.AsyncClient() as client:
+        if method == "POST":
+            return await client.post(url, json=body, headers=headers, timeout=timeout)
+        return await client.get(url, headers=headers, timeout=timeout)
+
+
 @app.get("/health")
 async def health():
     return {"status": "ok", "temporal": TEMPORAL_ADDR, "namespace": "Integritasmrv"}
+
 
 
 if __name__ == "__main__":
