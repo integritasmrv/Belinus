@@ -2,7 +2,6 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from temporalio.client import Client
 from temporalio.worker import Worker, UnsandboxedWorkflowRunner
-from temporalio.worker._workflow_runner import SandboxedWorkflowRunner
 
 from workers.workflows.ingest_workflow import IngestWorkflow
 from workers.workflows.writeback_workflow import WritebackWorkflow
