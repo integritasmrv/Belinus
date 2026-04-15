@@ -1,7 +1,16 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from temporalio.client import Client
-from temporalio.worker import Worker, SandboxedWorkflowRunner, SandboxRestrictions
+from temporalio.worker import Worker, UnsandboxedWorkflowRunner
+
+from workers.workflows.ingest_workflow import IngestWorkflow
+from workers.workflows.writeback_workflow import WritebackWorkflow
+from workers.workflows.enrichment_workflow import EnrichmentWorkflow
+from workers.activities.apply_mapping import apply_mapping, apply_mapping_batch
+from workers.activities.upsert_crm import upsert_crm_entity, get_crm_entity, check_entity_exists
+from workers.activities.update_crm import update_crm_enrichment
+from workers.activities.dedup_merge_check import dedup_merge_check
+from workers.activities.update_hubspot import update_hubspot_contact, update_hubspot_company, trigger_enrichiq
 
 
 async def main():
@@ -13,69 +22,21 @@ async def main():
     worker = Worker(
         client,
         task_queue=task_queue,
-        workflows=[
-            "workers.workflows.ingest_workflow.IngestWorkflow",
-            "workers.workflows.writeback_workflow.WritebackWorkflow",
-            "workers.workflows.enrichment_workflow.EnrichmentWorkflow",
-        ],
+        workflows=[IngestWorkflow, WritebackWorkflow, EnrichmentWorkflow],
         activities=[
-            "workers.activities.apply_mapping.apply_mapping",
-            "workers.activities.apply_mapping.apply_mapping_batch",
-            "workers.activities.upsert_crm.upsert_crm_entity",
-            "workers.activities.upsert_crm.get_crm_entity",
-            "workers.activities.upsert_crm.check_entity_exists",
-            "workers.activities.update_crm.update_crm_enrichment",
-            "workers.activities.dedup_merge_check.dedup_merge_check",
-            "workers.activities.update_hubspot.update_hubspot_contact",
-            "workers.activities.update_hubspot.update_hubspot_company",
-            "workers.activities.update_hubspot.trigger_enrichiq",
+            apply_mapping,
+            apply_mapping_batch,
+            upsert_crm_entity,
+            get_crm_entity,
+            check_entity_exists,
+            update_crm_enrichment,
+            dedup_merge_check,
+            update_hubspot_contact,
+            update_hubspot_company,
+            trigger_enrichiq,
         ],
         activity_executor=ThreadPoolExecutor(max_workers=10),
-        workflow_runner=SandboxedWorkflowRunner(
-            restrictions=SandboxRestrictions(
-                passthrough_modules={
-                    "asyncio",
-                    "asyncpg",
-                    "platform",
-                    "socket",
-                    "ssl",
-                    "select",
-                    "os",
-                    "sys",
-                    "io",
-                    "errno",
-                    "signal",
-                    "threading",
-                    "time",
-                    "weakref",
-                    "collections",
-                    "contextvars",
-                    "types",
-                    "gc",
-                    "traceback",
-                    "typing",
-                    "temporalio",
-                    "temporalio.client",
-                    "temporalio.worker",
-                    "temporalio.workflow",
-                    "temporalio.activity",
-                    "temporalio.api",
-                    "temporalio.bridge",
-                    "temporalio.bridge.temporal_sdk_bridge",
-                    "google",
-                    "google.protobuf",
-                    "google.api",
-                    "grpc",
-                    "posix",
-                    "fcntl",
-                    "resource",
-                    "syslog",
-                    "grp",
-                    "pwd",
-                    "stat",
-                },
-            ),
-        ),
+        workflow_runner=UnsandboxedWorkflowRunner(),
     )
 
     print(f"Temporal worker connecting to {temporal_addr}, namespace=Integritasmrv, task_queue={task_queue}")
