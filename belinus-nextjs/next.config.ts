@@ -12,6 +12,16 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  webpack: (config) => {
+    config.optimization = {
+      ...config.optimization,
+      splitChunks: {
+        ...config.optimization?.splitChunks,
+        maxSize: 20 * 1024 * 1024,
+      },
+    };
+    return config;
+  },
 };
 
 export default withNextIntl(nextConfig);
