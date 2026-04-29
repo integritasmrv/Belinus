@@ -1,6 +1,10 @@
-import { redirect } from 'next/navigation';
-import { defaultLocale } from '@/i18n';
-
 export default function RootPage() {
-  redirect(`/${defaultLocale}`);
+  return (
+    <html lang="en">
+      <head>
+        <meta httpEquiv="refresh" content="0;url=/en" />
+      </head>
+      <body />
+    </html>
+  );
 }
