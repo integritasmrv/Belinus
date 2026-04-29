@@ -1,11 +1,17 @@
 import type { NextConfig } from 'next';
+import createNextIntlPlugin from 'next-intl/plugin';
+
+const withNextIntl = createNextIntlPlugin('./i18n.ts');
 
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
-      { protocol: 'https', hostname: 'master.belinus.net' },
+      {
+        protocol: 'https',
+        hostname: 'master.belinus.net',
+      },
     ],
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);
