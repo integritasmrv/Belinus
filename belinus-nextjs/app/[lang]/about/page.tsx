@@ -31,15 +31,15 @@ export default function AboutPage() {
 
         <Section className="mt-20">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card variant="dark" className="p-8 text-center">
+            <Card className="p-8 text-center">
               <div className="text-4xl font-black text-accent mb-2">35yr</div>
               <div className="text-sm text-white/40">Warranty</div>
             </Card>
-            <Card variant="dark" className="p-8 text-center">
+            <Card className="p-8 text-center">
               <div className="text-4xl font-black text-accent mb-2">99%</div>
               <div className="text-sm text-white/40">Round-trip efficiency</div>
             </Card>
-            <Card variant="dark" className="p-8 text-center">
+            <Card className="p-8 text-center">
               <div className="text-4xl font-black text-accent mb-2">0%</div>
               <div className="text-sm text-white/40">Thermal runaway risk</div>
             </Card>
@@ -59,7 +59,7 @@ export default function AboutPage() {
               ['No rare earths', 'Sustainable materials, lower environmental impact'],
               ['Lower TCO', 'Reduced replacement and maintenance costs over time'],
             ].map(([title, desc]) => (
-              <Card key={title} variant="dark" className="p-6">
+              <Card key={title} className="p-6">
                 <h3 className="text-base font-bold text-white mb-2">{title}</h3>
                 <p className="text-sm text-white/50 leading-relaxed">{desc}</p>
               </Card>
