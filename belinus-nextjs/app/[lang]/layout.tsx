@@ -6,8 +6,13 @@ import { Footer } from '@/components/layout/Footer';
 import en from '@/messages/en.json';
 import nl from '@/messages/nl.json';
 import fr from '@/messages/fr.json';
+import type { AbstractIntlMessages } from 'next-intl';
 
-const messagesMap: Record<Locale, Record<string, unknown>> = { en, nl, fr };
+const messagesMap: Record<Locale, AbstractIntlMessages> = {
+  en: en as AbstractIntlMessages,
+  nl: nl as AbstractIntlMessages,
+  fr: fr as AbstractIntlMessages,
+};
 
 export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
