@@ -1,4 +1,4 @@
-name: Deploy to Vercel
+name: Deploy to Cloudflare Pages
 
 on:
   push:
@@ -9,23 +9,32 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
+          cache-dependency-path: belinus-nextjs/package-lock.json
 
-      - run: npm ci
+      - name: Install dependencies
+        working-directory: belinus-nextjs
+        run: npm ci
 
-      - run: npm run build
+      - name: Build
+        working-directory: belinus-nextjs
+        run: npm run build
         env:
           NEXT_PUBLIC_WP_API_URL: ${{ secrets.NEXT_PUBLIC_WP_API_URL }}
           NEXT_PUBLIC_HATCHET_WEBHOOK_URL: ${{ secrets.NEXT_PUBLIC_HATCHET_WEBHOOK_URL }}
 
-      - uses: amondnet/vercel-action@v25
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
         with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: belinus-nextjs
+          directory: belinus-nextjs/.next
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
