@@ -12,7 +12,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  outputFileTracingExcludes: ['**/*'],
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.optimization = {
@@ -29,6 +28,7 @@ const nextConfig: NextConfig = {
         },
       };
     }
+    config.cache = false;
     return config;
   },
 };
