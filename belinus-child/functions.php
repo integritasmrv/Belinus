@@ -2,8 +2,10 @@
 /**
  * Belinus Child Theme — functions.php
  *
- * Enqueues, theme support, Settings page, CF7 → Hatchet/Dittofeed integration,
- * GDPR consent log, free-mail rejection. No inline scripts. No hardcoded secrets.
+ * Enqueues, theme support, Settings page, CF7 → Hatchet integration,
+ * GDPR consent log, free-mail rejection, Chatwoot + Cal.com loaders.
+ * No inline scripts beyond canonical third-party SDK snippets.
+ * No hardcoded secrets — all via get_option() + Settings page.
  *
  * @package Belinus
  * @since   1.3.0
@@ -12,7 +14,7 @@
 declare( strict_types=1 );
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly.
+	exit;
 }
 
 define( 'BELINUS_CHILD_VERSION', '1.3.0' );
@@ -23,13 +25,7 @@ define( 'BELINUS_THEME_URI', get_stylesheet_directory_uri() );
  * 1. THEME SUPPORT + ENQUEUE
  * ========================================================================= */
 
-/**
- * Enqueue parent Divi styles, child styles, Google Fonts, and the Belinus JS bundle.
- */
 function belinus_enqueue_assets(): void {
-
-	// Inter (Google Fonts) — explicit, async-friendly. Preconnect added in
-	// belinus_resource_hints(). display=swap prevents FOIT.
 	wp_enqueue_style(
 		'belinus-google-fonts',
 		'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap',
@@ -37,7 +33,6 @@ function belinus_enqueue_assets(): void {
 		null
 	);
 
-	// Parent Divi style.
 	wp_enqueue_style(
 		'divi-parent-style',
 		get_template_directory_uri() . '/style.css',
@@ -45,7 +40,6 @@ function belinus_enqueue_assets(): void {
 		BELINUS_CHILD_VERSION
 	);
 
-	// Child theme style (depends on parent + fonts).
 	wp_enqueue_style(
 		'belinus-child-style',
 		get_stylesheet_uri(),
@@ -53,84 +47,69 @@ function belinus_enqueue_assets(): void {
 		BELINUS_CHILD_VERSION
 	);
 
-	// Belinus JS bundle — deferred, no jQuery dependency.
 	wp_enqueue_script(
 		'belinus-main',
 		BELINUS_THEME_URI . '/js/belinus.js',
 		array(),
 		BELINUS_CHILD_VERSION,
-		array(
-			'in_footer' => true,
-			'strategy'  => 'defer',
-		)
+		array( 'in_footer' => true, 'strategy' => 'defer' )
 	);
 
-	// Pass settings to JS via wp_localize_script.
 	wp_localize_script(
 		'belinus-main',
 		'BELINUS',
 		array(
-			'restUrl'   => esc_url_raw( rest_url() ),
-			'nonce'     => wp_create_nonce( 'wp_rest' ),
-			'crispId'   => get_option( 'belinus_crisp_id', '' ),
-			'calcomSlug' => get_option( 'belinus_calcom_slug', '' ),
-			'reduce'    => false, // JS reads matchMedia at runtime.
+			'restUrl'       => esc_url_raw( rest_url() ),
+			'nonce'         => wp_create_nonce( 'wp_rest' ),
+			'chatwootToken' => get_option( 'belinus_chatwoot_token', '' ),
+			'calcomSlug'    => get_option( 'belinus_calcom_slug', '' ),
+			'reduce'        => false,
 		)
 	);
 }
 add_action( 'wp_enqueue_scripts', 'belinus_enqueue_assets', 20 );
 
-/**
- * Resource hints — preconnect Google Fonts and (optionally) Crisp.
- */
 function belinus_resource_hints( array $urls, string $relation_type ): array {
 	if ( 'preconnect' === $relation_type ) {
-		$urls[] = array(
-			'href'        => 'https://fonts.googleapis.com',
-			'crossorigin' => '',
-		);
-		$urls[] = array(
-			'href'        => 'https://fonts.gstatic.com',
-			'crossorigin' => '',
-		);
-		if ( get_option( 'belinus_crisp_id' ) ) {
-			$urls[] = array(
-				'href' => 'https://client.crisp.chat',
-				'crossorigin' => '',
-			);
-		}
+		$urls[] = array( 'href' => 'https://fonts.googleapis.com',      'crossorigin' => '' );
+		$urls[] = array( 'href' => 'https://fonts.gstatic.com',           'crossorigin' => '' );
 	}
 	return $urls;
 }
 add_filter( 'wp_resource_hints', 'belinus_resource_hints', 10, 2 );
 
-/**
- * Inline the Crisp + Cal.com loader scripts (deferred, only if configured).
- * No inline script for arbitrary code — only the canonical async snippets.
- */
 function belinus_third_party_loaders(): void {
-	$crisp_id = get_option( 'belinus_crisp_id', '' );
-	if ( $crisp_id ) {
+	$chatwoot_token = get_option( 'belinus_chatwoot_token', '' );
+	if ( $chatwoot_token ) :
 		?>
 		<script>
-			window.$crisp = []; window.CRISP_WEBSITE_ID = <?php echo wp_json_encode( $crisp_id ); ?>;
-			(function(){let d=document,s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.head.appendChild(s);})();
+		  (function(d,t) {
+		    var BASE_URL = "https://chat.belinus.net";
+		    var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
+		    g.src = BASE_URL + "/packs/sdk.js";
+		    g.async = 1;
+		    s.parentNode.insertBefore(g, s);
+		    g.onload = function() {
+		      window.chatwootSDK.run({
+				websiteToken: '<?php echo esc_js( $chatwoot_token ); ?>',
+				baseUrl: BASE_URL,
+				locale: 'en',
+				useBrowserLanguage: true
+		      });
+		    };
+		  })(document, "script");
 		</script>
 		<?php
-	}
+	endif;
 
 	$calcom = get_option( 'belinus_calcom_slug', '' );
-	if ( $calcom ) {
+	if ( $calcom ) :
 		?>
 		<script>
-			(function(C,A,L){let p=function(a,ar){a.q.push(ar);};let d=C.document;C.Cal=C.Cal||function(){
-			let cal=C.Cal;let ar=arguments;if(!cal.loaded){cal.ns={};cal.q=cal.q||[];d.head.appendChild(d.createElement("script")).src=A;cal.loaded=true;
-			if(ar[0]===L){const api=function(){p(api,arguments);};const namespace=ar[1];api.q=api.q||[];if(typeof namespace==="string"){cal.ns[namespace]=cal.ns[namespace]||api;p(cal.ns[namespace],ar);}else p(cal,ar);}else p(cal,ar);};
-			}})(window,"https://app.cal.com/embed/embed.js","init");
-			Cal("init", { origin: "https://cal.com" });
+			(function(C,A,L){let p=function(a,ar){a.q.push(ar);};let d=C.document;C.Cal=C.Cal||function(){let cal=C.Cal;let ar=arguments;if(!cal.loaded){cal.ns={};cal.q=cal.q||[];d.head.appendChild(d.createElement("script")).src=A;cal.loaded=true;if(ar[0]===L){const api=function(){p(api,arguments);};const namespace=ar[1];api.q=api.q||[];if(typeof namespace==="string"){cal.ns[namespace]=cal.ns[namespace]||api;p(cal.ns[namespace],ar);}else p(cal,ar);}else p(cal,ar);};}})(window,"https://app.cal.com/embed/embed.js","init");Cal("init",{origin:"https://cal.com"});
 		</script>
 		<?php
-	}
+	endif;
 }
 add_action( 'wp_footer', 'belinus_third_party_loaders', 5 );
 
@@ -142,19 +121,9 @@ function belinus_theme_setup(): void {
 	add_theme_support( 'title-tag' );
 	add_theme_support( 'post-thumbnails' );
 	add_theme_support( 'html5', array( 'search-form', 'comment-form', 'comment-list', 'gallery', 'caption', 'script', 'style' ) );
-	add_theme_support( 'custom-logo', array(
-		'height'      => 48,
-		'width'       => 180,
-		'flex-width'  => true,
-		'flex-height' => true,
-	) );
+	add_theme_support( 'custom-logo', array( 'height' => 48, 'width' => 180, 'flex-width' => true, 'flex-height' => true ) );
 	add_theme_support( 'responsive-embeds' );
-
-	register_nav_menus( array(
-		'primary' => __( 'Primary Navigation', 'belinus' ),
-		'footer'  => __( 'Footer Navigation', 'belinus' ),
-	) );
-
+	register_nav_menus( array( 'primary' => __( 'Primary Navigation', 'belinus' ), 'footer' => __( 'Footer Navigation', 'belinus' ) ) );
 	load_child_theme_textdomain( 'belinus', BELINUS_THEME_DIR . '/languages' );
 }
 add_action( 'after_setup_theme', 'belinus_theme_setup' );
@@ -163,12 +132,9 @@ add_action( 'after_setup_theme', 'belinus_theme_setup' );
  * 3. GDPR CONSENT TABLE
  * ========================================================================= */
 
-/**
- * Create the wp_belinus_consent table on theme activation / upgrade.
- */
 function belinus_create_consent_table(): void {
 	global $wpdb;
-	$table = $wpdb->prefix . 'belinus_consent';
+	$table   = $wpdb->prefix . 'belinus_consent';
 	$charset = $wpdb->get_charset_collate();
 
 	$sql = "CREATE TABLE {$table} (
@@ -188,11 +154,9 @@ function belinus_create_consent_table(): void {
 
 	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 	dbDelta( $sql );
-
 	update_option( 'belinus_consent_table_version', '1.0' );
 }
 
-// Run once per theme activation or if the version flag is missing.
 function belinus_maybe_create_consent_table(): void {
 	if ( get_option( 'belinus_consent_table_version' ) !== '1.0' ) {
 		belinus_create_consent_table();
@@ -201,26 +165,17 @@ function belinus_maybe_create_consent_table(): void {
 add_action( 'after_switch_theme', 'belinus_create_consent_table' );
 add_action( 'init', 'belinus_maybe_create_consent_table' );
 
-/**
- * Insert one consent row.
- *
- * @param int    $form_id  CF7 form id.
- * @param string $email    Plain email (will be hashed).
- * @param string $ip       Plain IP (will be hashed).
- * @param string $ua       User agent string.
- * @param string $consent  The visible consent text shown to the user.
- */
 function belinus_log_consent( int $form_id, string $email, string $ip, string $ua, string $consent ): void {
 	global $wpdb;
 	$wpdb->insert(
 		$wpdb->prefix . 'belinus_consent',
 		array(
-			'submitted_at'   => current_time( 'mysql' ),
-			'form_id'        => $form_id,
-			'email_hash'     => hash( 'sha256', strtolower( trim( $email ) ) ),
-			'ip_hash'        => hash( 'sha256', $ip . wp_salt( 'auth' ) ),
-			'user_agent'     => substr( sanitize_text_field( $ua ), 0, 512 ),
-			'consent_text'   => $consent,
+			'submitted_at'    => current_time( 'mysql' ),
+			'form_id'         => $form_id,
+			'email_hash'      => hash( 'sha256', strtolower( trim( $email ) ) ),
+			'ip_hash'         => hash( 'sha256', $ip . wp_salt( 'auth' ) ),
+			'user_agent'      => substr( sanitize_text_field( $ua ), 0, 512 ),
+			'consent_text'    => $consent,
 			'consent_version' => '1.0',
 		),
 		array( '%s', '%d', '%s', '%s', '%s', '%s', '%s' )
@@ -231,10 +186,6 @@ function belinus_log_consent( int $form_id, string $email, string $ip, string $u
  * 4. CF7 → HATCHET + GDPR LOG
  * ========================================================================= */
 
-/**
- * Send Hatchet event + log GDPR consent.
- * Fires inside CF7's wpcf7_before_send_mail (validated submission).
- */
 function belinus_cf7_to_hatchet( $contact_form ): void {
 	if ( ! $contact_form instanceof WPCF7_ContactForm ) {
 		return;
@@ -248,22 +199,20 @@ function belinus_cf7_to_hatchet( $contact_form ): void {
 	$data = $submission->get_posted_data();
 	$meta = $submission->get_meta();
 
-	// Bail if not the Belinus B2B v3 form (configurable by title).
 	$lead_form_title = get_option( 'belinus_lead_form_title', 'Belinus B2B v3' );
 	if ( $contact_form->title() !== $lead_form_title ) {
 		return;
 	}
 
-	$email     = isset( $data['your-email'] ) ? sanitize_email( (string) $data['your-email'] ) : '';
+	$email     = isset( $data['your-email'] )         ? sanitize_email( (string) $data['your-email'] )         : '';
 	$full_name = trim(
 		( isset( $data['first-name'] ) ? $data['first-name'] : '' ) . ' ' .
-		( isset( $data['last-name'] ) ? $data['last-name'] : '' )
+		( isset( $data['last-name'] )  ? $data['last-name']  : '' )
 	);
-	$company   = isset( $data['company'] )          ? sanitize_text_field( (string) $data['company'] )          : '';
-	$role      = isset( $data['function'] )         ? sanitize_text_field( (string) $data['function'] )         : '';
-	$site_type = isset( $data['product-interest'] )  ? sanitize_text_field( (string) $data['product-interest'] )  : '';
-	$peak_kw   = '';
-	$message   = isset( $data['message'] )            ? sanitize_textarea_field( (string) $data['message'] )       : '';
+	$company   = isset( $data['company'] )            ? sanitize_text_field( (string) $data['company'] )            : '';
+	$role      = isset( $data['function'] )           ? sanitize_text_field( (string) $data['function'] )           : '';
+	$site_type = isset( $data['product-interest'] )   ? sanitize_text_field( (string) $data['product-interest'] )   : '';
+	$message   = isset( $data['message'] )            ? sanitize_textarea_field( (string) $data['message'] )          : '';
 	$gdpr      = ! empty( $data['gdpr-consent'] );
 
 	if ( ! $email ) {
@@ -273,10 +222,8 @@ function belinus_cf7_to_hatchet( $contact_form ): void {
 	$ip_address = isset( $meta['remote_ip'] ) ? (string) $meta['remote_ip'] : '';
 	$user_agent = isset( $meta['user_agent'] ) ? (string) $meta['user_agent'] : '';
 
-	// Log GDPR consent (only if the box was actually ticked).
 	if ( $gdpr ) {
 		$consent_text = sprintf(
-			/* translators: %s = privacy policy URL */
 			__( 'I agree to be contacted by Belinus about my enquiry. See the privacy policy: %s', 'belinus' ),
 			home_url( '/privacy' )
 		);
@@ -299,13 +246,9 @@ function belinus_cf7_to_hatchet( $contact_form ): void {
 	);
 
 	belinus_send_to_hatchet( $payload_common );
-
 }
 add_action( 'wpcf7_before_send_mail', 'belinus_cf7_to_hatchet', 20, 1 );
 
-/**
- * Non-blocking POST to Hatchet event endpoint.
- */
 function belinus_send_to_hatchet( array $payload ): void {
 	$url = get_option( 'belinus_hatchet_url', '' );
 	$key = get_option( 'belinus_hatchet_key', '' );
@@ -314,20 +257,15 @@ function belinus_send_to_hatchet( array $payload ): void {
 		return;
 	}
 
-	$body = wp_json_encode( array(
-		'event' => 'wordpress:lead_captured',
-		'data'  => $payload,
-	) );
-
 	wp_remote_post( $url, array(
 		'method'   => 'POST',
-		'timeout'  => 0.01,            // Non-blocking — don't wait.
+		'timeout'  => 0.01,
 		'blocking' => false,
 		'headers'  => array(
 			'Content-Type'  => 'application/json',
 			'Authorization' => 'Bearer ' . $key,
 		),
-		'body'     => $body,
+		'body'     => wp_json_encode( array( 'event' => 'wordpress:lead_captured', 'data' => $payload ) ),
 	) );
 }
 
@@ -335,10 +273,6 @@ function belinus_send_to_hatchet( array $payload ): void {
  * 5. CF7 — REJECT FREE-MAIL DOMAINS ON email FIELD
  * ========================================================================= */
 
-/**
- * Validation hook: returns invalid for common free-mail providers on
- * any field whose name matches `your-email`.
- */
 function belinus_reject_freemail_email( $result, $tag ) {
 	$tag_name = is_object( $tag ) ? $tag->name : ( $tag['name'] ?? '' );
 	if ( 'your-email' !== $tag_name ) {
@@ -350,8 +284,8 @@ function belinus_reject_freemail_email( $result, $tag ) {
 		return $result;
 	}
 
-	$domain = strtolower( substr( strrchr( $value, '@' ), 1 ) );
-	$blocked = array(
+	$domain   = strtolower( substr( strrchr( $value, '@' ), 1 ) );
+	$blocked  = array(
 		'gmail.com', 'googlemail.com',
 		'hotmail.com', 'hotmail.co.uk', 'hotmail.fr', 'hotmail.be', 'hotmail.nl',
 		'outlook.com', 'outlook.fr', 'outlook.be', 'outlook.nl',
@@ -393,23 +327,19 @@ add_action( 'admin_menu', 'belinus_register_settings_page' );
 
 function belinus_register_settings(): void {
 	$fields = array(
-		'belinus_crisp_id'          => 'Crisp Website ID',
-		'belinus_calcom_slug'       => 'Cal.com slug (e.g. belinus/discovery-30)',
-		'belinus_hatchet_url'      => 'Hatchet event URL',
-		'belinus_hatchet_key'       => 'Hatchet API key',
-		'belinus_lead_form_title'   => 'CF7 lead form title (default: Belinus B2B v3)',
+		'belinus_chatwoot_token'  => 'Chatwoot Website Token',
+		'belinus_calcom_slug'     => 'Cal.com slug (e.g. belinus/discovery-30)',
+		'belinus_hatchet_url'     => 'Hatchet event URL',
+		'belinus_hatchet_key'     => 'Hatchet API key',
+		'belinus_lead_form_title' => 'CF7 lead form title (default: Belinus B2B v3)',
 	);
 
 	foreach ( $fields as $key => $label ) {
-		register_setting(
-			'belinus_settings_group',
-			$key,
-			array(
-				'type'              => 'string',
-				'sanitize_callback' => str_ends_with( $key, '_url' ) ? 'esc_url_raw' : 'sanitize_text_field',
-				'default'           => '',
-			)
-		);
+		register_setting( 'belinus_settings_group', $key, array(
+			'type'              => 'string',
+			'sanitize_callback' => str_ends_with( $key, '_url' ) ? 'esc_url_raw' : 'sanitize_text_field',
+			'default'           => '',
+		) );
 	}
 }
 add_action( 'admin_init', 'belinus_register_settings' );
@@ -419,7 +349,7 @@ function belinus_render_settings_page(): void {
 		return;
 	}
 	$fields = array(
-		'belinus_crisp_id'        => 'Crisp Website ID',
+		'belinus_chatwoot_token'  => 'Chatwoot Website Token',
 		'belinus_calcom_slug'     => 'Cal.com slug',
 		'belinus_hatchet_url'     => 'Hatchet event URL',
 		'belinus_hatchet_key'     => 'Hatchet API key',
@@ -428,26 +358,26 @@ function belinus_render_settings_page(): void {
 	?>
 	<div class="wrap">
 		<h1><?php esc_html_e( 'Belinus Integrations', 'belinus' ); ?></h1>
-		<p><?php esc_html_e( 'Configure third-party integrations for the Belinus child theme. Empty fields disable that integration silently.', 'belinus' ); ?></p>
+		<p><?php esc_html_e( 'Configure third-party integrations. Empty fields disable that integration silently.', 'belinus' ); ?></p>
 		<form method="post" action="options.php">
 			<?php settings_fields( 'belinus_settings_group' ); ?>
 			<table class="form-table" role="presentation">
 				<tbody>
-					<?php foreach ( $fields as $key => $label ) : ?>
-						<tr>
-							<th scope="row"><label for="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></label></th>
-							<td>
-								<input
-									type="<?php echo str_ends_with( $key, '_key' ) ? 'password' : 'text'; ?>"
-									id="<?php echo esc_attr( $key ); ?>"
-									name="<?php echo esc_attr( $key ); ?>"
-									value="<?php echo esc_attr( get_option( $key, '' ) ); ?>"
-									class="regular-text"
-									autocomplete="off"
-								/>
-							</td>
-						</tr>
-					<?php endforeach; ?>
+				<?php foreach ( $fields as $key => $label ) : ?>
+					<tr>
+						<th scope="row"><label for="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></label></th>
+						<td>
+							<input
+								type="<?php echo str_ends_with( $key, '_key' ) ? 'password' : 'text'; ?>"
+								id="<?php echo esc_attr( $key ); ?>"
+								name="<?php echo esc_attr( $key ); ?>"
+								value="<?php echo esc_attr( get_option( $key, '' ) ); ?>"
+								class="regular-text"
+								autocomplete="off"
+							/>
+						</td>
+					</tr>
+				<?php endforeach; ?>
 				</tbody>
 			</table>
 			<?php submit_button(); ?>
@@ -457,7 +387,7 @@ function belinus_render_settings_page(): void {
 }
 
 /* =========================================================================
- * 7. DEVELOPER NOTES (keep in code so they don\'t drift)
+ * 7. DEVELOPER NOTES
  * ========================================================================= */
 /*
  * - All animation reveal classes (.bl-reveal-up, .bl-stagger) are toggled
@@ -467,8 +397,8 @@ function belinus_render_settings_page(): void {
  * - The ROI calculator markup lives in a Divi Code module on the page.
  *   The HTML must use class `bl-roi-calculator` for the JS to bind.
  *
- * - Crisp + Cal.com loaders are inlined here only so they pick up the
- *   admin-configured IDs; everything else lives in belinus.js.
+ * - Chatwoot + Cal.com loaders are inlined here only so they pick up the
+ *   admin-configured tokens; everything else lives in belinus.js.
  *
  * - Never hard-code API keys or webhook URLs in this file. Always read
  *   from get_option() and configure via Settings → Belinus.
