@@ -12,14 +12,25 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  webpack: (config) => {
-    config.optimization = {
-      ...config.optimization,
-      splitChunks: {
-        ...config.optimization?.splitChunks,
-        maxSize: 20 * 1024 * 1024,
-      },
-    };
+  experimental: {
+    outputFileTracingExcludes: ['**/*'],
+  },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          ...config.optimization?.splitChunks,
+          minSize: 1000,
+          maxSize: 5 * 1024 * 1024,
+          cacheGroups: {
+            ...config.optimization?.splitChunks?.cacheGroups,
+            default: false,
+            vendors: false,
+          },
+        },
+      };
+    }
     return config;
   },
 };
