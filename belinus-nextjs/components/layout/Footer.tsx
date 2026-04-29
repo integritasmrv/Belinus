@@ -1,10 +1,8 @@
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { getLocale } from '@/lib/i18n';
 
 export function Footer() {
   const t = useTranslations('footer');
-  const locale = getLocale();
 
   return (
     <footer className="bg-black border-t border-white/[0.08] pt-20 pb-8">
@@ -22,10 +20,10 @@ export function Footer() {
           <div>
             <h3 className="text-[11px] font-bold tracking-[0.2em] uppercase text-white/30 mb-5">{t('company_title')}</h3>
             <ul className="space-y-2.5">
-              <li><Link href={`/${locale}/about`} className="text-sm text-white/55 hover:text-accent transition-colors">{t('company_1')}</Link></li>
+              <li><Link href="/en/about" className="text-sm text-white/55 hover:text-accent transition-colors">{t('company_1')}</Link></li>
               <li><Link href="#" className="text-sm text-white/55 hover:text-accent transition-colors">{t('company_2')}</Link></li>
               <li><Link href="#" className="text-sm text-white/55 hover:text-accent transition-colors">{t('company_3')}</Link></li>
-              <li><Link href={`/${locale}/contact`} className="text-sm text-white/55 hover:text-accent transition-colors">{t('company_4')}</Link></li>
+              <li><Link href="/en/contact" className="text-sm text-white/55 hover:text-accent transition-colors">{t('company_4')}</Link></li>
             </ul>
           </div>
           <div>
