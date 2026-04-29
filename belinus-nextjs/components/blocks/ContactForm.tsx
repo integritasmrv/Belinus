@@ -135,6 +135,8 @@ export function ContactForm() {
 
 interface FieldProps { label: string; name: string; type: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void; error?: string; required?: boolean; placeholder?: string; }
 
+interface SelectFieldProps { label: string; name: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void; error?: string; required?: boolean; options: {v:string,l:string}[]; }
+
 function Field({ label, name, type, value, onChange, error, required, placeholder }: FieldProps) {
   const id = `f-${name}`;
   return (
@@ -159,7 +161,7 @@ function TextareaField({ label, name, value, onChange, error, required, placehol
   );
 }
 
-function SelectField({ label, name, value, onChange, error, required, options }: FieldProps & { options: {v:string,l:string}[] }) {
+function SelectField({ label, name, value, onChange, error, required, options }: SelectFieldProps) {
   const id = `f-${name}`;
   return (
     <div>
