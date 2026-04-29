@@ -1,3 +1,5 @@
+export const dynamic = 'force-static';
+
 import { Hero } from '@/components/blocks/Hero';
 import { Why } from '@/components/blocks/Why';
 import { UseCases } from '@/components/blocks/UseCases';
