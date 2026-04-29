@@ -1,0 +1,31 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: belinus-nextjs/package-lock.json
+      - run: npm ci
+        working-directory: belinus-nextjs
+      - run: npm run build
+        working-directory: belinus-nextjs
+        env:
+          NEXT_PUBLIC_WP_API_URL: ${{ secrets.NEXT_PUBLIC_WP_API_URL }}
+          NEXT_PUBLIC_HATCHET_WEBHOOK_URL: ${{ secrets.NEXT_PUBLIC_HATCHET_WEBHOOK_URL }}
+      - uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: belinus-nextjs
+          directory: belinus-nextjs/.next
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
