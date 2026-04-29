@@ -9,8 +9,6 @@
  * UPDATED in place (timeline edits) rather than duplicated.
  */
 
-declare( strict_types = 1 );
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit( "Run this via 'wp eval-file' inside WordPress context.\n" );
 }
