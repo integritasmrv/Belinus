@@ -1,69 +1,97 @@
 import { Metadata } from 'next';
+
+export const dynamic = 'force-static';
+
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { Card } from '@/components/ui/Card';
 import { Section } from '@/components/ui/Section';
+import { Button } from '@/components/ui/Button';
 
 export const metadata: Metadata = {
   title: 'About — Belinus Energy',
-  description: 'Belgium-based clean energy company developing lithium-free battery storage using graphene supercapacitor technology.',
+  description: "Learn about Belinus's graphene supercapacitor technology, our mission to revolutionize commercial battery storage, and the experienced team behind our innovative energy solutions.",
 };
 
 export default function AboutPage() {
   return (
-    <>
-      <section className="pt-40 pb-24 px-6 bg-bg text-center">
-        <div className="max-w-3xl mx-auto">
-          <Eyebrow>About Belinus</Eyebrow>
-          <h1 className="text-[clamp(40px,6vw,72px)] font-black leading-[1.1] tracking-[-0.02em] text-white mb-6">
-            Belgian Engineering,<br />Built for Decades
-          </h1>
-          <p className="text-[18px] text-white/60 leading-relaxed max-w-xl mx-auto">
-            Founded in Belgium, Belinus develops lithium-free commercial battery storage using proprietary graphene supercapacitor technology. Our systems are engineered for longevity, safety, and performance — without compromise.
+    <section className="pt-32 pb-24 px-6 bg-bg">
+      <div className="max-w-3xl mx-auto">
+        <Eyebrow>About</Eyebrow>
+        <h1 className="text-[clamp(36px,5vw,72px)] font-black leading-[1.05] tracking-[-0.025em] text-white mb-8 mt-4">
+          We're making commercial battery storage simpler, safer and smarter.
+        </h1>
+        <div className="space-y-6 text-[17px] text-white/60 leading-relaxed">
+          <p>
+            Belinus was founded in Belgium with a clear mission: to develop next-generation commercial battery storage that eliminates the fire risks and environmental concerns associated with lithium-ion technology.
+          </p>
+          <p>
+            Our graphene-based supercapacitors deliver 99% round-trip efficiency with a 35-year operational lifespan — dramatically reducing total cost of ownership compared to traditional battery solutions. No thermal runaway. No rare earth materials. No compromise.
           </p>
         </div>
-      </section>
-      <Section>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <Card>
-            <h3 className="text-xl font-bold text-white mb-3">Thor Park, Genk</h3>
-            <p className="text-[15px] text-white/55 leading-relaxed">
-              Our headquarters and R&D center is located at Thor Park, one of Europe&apos;s leading energy innovation campuses in Limburg, Belgium.
-            </p>
-          </Card>
-          <Card>
-            <h3 className="text-xl font-bold text-white mb-3">Energyville Partner</h3>
-            <p className="text-[15px] text-white/55 leading-relaxed">
-              As an official Energyville partner, we collaborate with Belgium&apos;s top energy research institutions to advance battery storage technology.
-            </p>
-          </Card>
-          <Card>
-            <h3 className="text-xl font-bold text-white mb-3">CE Certified</h3>
-            <p className="text-[15px] text-white/55 leading-relaxed">
-              All Belinus systems carry CE certification, meeting the highest European safety and performance standards for commercial energy storage.
-            </p>
-          </Card>
-        </div>
-      </Section>
-      <Section dark={false}>
-        <div className="text-center mb-12">
-          <Eyebrow>Contact</Eyebrow>
-          <h2 className="text-[clamp(28px,4vw,48px)] font-black text-white">Get in touch</h2>
-        </div>
-        <div className="flex flex-wrap justify-center gap-10">
-          <div>
-            <div className="text-[13px] font-semibold tracking-[0.15em] uppercase text-white/30 mb-3">Phone</div>
-            <a href="tel:+3293963388" className="text-base text-white/70 hover:text-accent transition-colors">+32 (0)9 396 33 88</a>
+
+        <Section className="mt-20">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card variant="dark" className="p-8 text-center">
+              <div className="text-4xl font-black text-accent mb-2">35yr</div>
+              <div className="text-sm text-white/40">Warranty</div>
+            </Card>
+            <Card variant="dark" className="p-8 text-center">
+              <div className="text-4xl font-black text-accent mb-2">99%</div>
+              <div className="text-sm text-white/40">Round-trip efficiency</div>
+            </Card>
+            <Card variant="dark" className="p-8 text-center">
+              <div className="text-4xl font-black text-accent mb-2">0%</div>
+              <div className="text-sm text-white/40">Thermal runaway risk</div>
+            </Card>
           </div>
-          <div>
-            <div className="text-[13px] font-semibold tracking-[0.15em] uppercase text-white/30 mb-3">Email</div>
-            <a href="mailto:info@belinus.com" className="text-base text-white/70 hover:text-accent transition-colors">info@belinus.com</a>
+        </Section>
+
+        <Section className="mt-20">
+          <h2 className="text-[clamp(24px,3vw,40px)] font-black text-white mb-8">
+            Key advantages over lithium-ion
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[
+              ['Non-flammable', 'No thermal runaway or fire risk under any condition'],
+              ['Longer lifespan', '35-year operational life vs 10-15 years for lithium-ion'],
+              ['Higher efficiency', '99% round-trip vs 85-90% for lithium-ion'],
+              ['Faster charging', 'Rapid charge/discharge cycles without degradation'],
+              ['No rare earths', 'Sustainable materials, lower environmental impact'],
+              ['Lower TCO', 'Reduced replacement and maintenance costs over time'],
+            ].map(([title, desc]) => (
+              <Card key={title} variant="dark" className="p-6">
+                <h3 className="text-base font-bold text-white mb-2">{title}</h3>
+                <p className="text-sm text-white/50 leading-relaxed">{desc}</p>
+              </Card>
+            ))}
           </div>
-          <div>
-            <div className="text-[13px] font-semibold tracking-[0.15em] uppercase text-white/30 mb-3">Address</div>
-            <span className="text-base text-white/70">Thor Park, 3600 Genk, Belgium</span>
+        </Section>
+
+        <Section className="mt-20">
+          <h2 className="text-[clamp(24px,3vw,40px)] font-black text-white mb-8">
+            Technology partners
+          </h2>
+          <div className="flex flex-wrap gap-6">
+            {['Energyville', 'Flanders Make', 'VITO'].map((partner) => (
+              <div key={partner} className="px-6 py-3 border border-white/10 text-white/40 text-sm font-semibold">
+                {partner}
+              </div>
+            ))}
           </div>
-        </div>
-      </Section>
-    </>
+        </Section>
+
+        <Section className="mt-20 text-center">
+          <h2 className="text-[clamp(24px,3vw,40px)] font-black text-white mb-4">
+            Ready to explore Belinus?
+          </h2>
+          <p className="text-white/50 mb-8 max-w-lg mx-auto">
+            Talk to our team about how graphene supercapacitor technology can transform your energy infrastructure.
+          </p>
+          <Button href="/en/contact" variant="primary">
+            Get in Touch
+          </Button>
+        </Section>
+      </div>
+    </section>
   );
 }
