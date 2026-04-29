@@ -137,6 +137,8 @@ interface FieldProps { label: string; name: string; type: string; value: string;
 
 interface SelectFieldProps { label: string; name: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void; error?: string; required?: boolean; options: {v:string,l:string}[]; }
 
+interface TextareaFieldProps { label: string; name: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void; error?: string; required?: boolean; placeholder?: string; }
+
 function Field({ label, name, type, value, onChange, error, required, placeholder }: FieldProps) {
   const id = `f-${name}`;
   return (
@@ -149,7 +151,7 @@ function Field({ label, name, type, value, onChange, error, required, placeholde
   );
 }
 
-function TextareaField({ label, name, value, onChange, error, required, placeholder }: FieldProps) {
+function TextareaField({ label, name, value, onChange, error, required, placeholder }: TextareaFieldProps) {
   const id = `f-${name}`;
   return (
     <div>
