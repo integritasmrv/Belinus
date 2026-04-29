@@ -40,7 +40,7 @@ export default async function BlogPage({ params }: Props) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {posts.map((post) => (
               <Link key={post.slug} href={`/${lang}/blog/${post.slug}`}>
-                <Card variant="dark" hover className="h-full overflow-hidden group">
+                <Card hover className="h-full overflow-hidden group">
                   {post.featured_media_url && (
                     <div className="aspect-video overflow-hidden">
                       <img
