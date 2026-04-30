@@ -27,5 +27,5 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: belinus-nextjs
-          directory: belinus-nextjs/.next
+          directory: belinus-nextjs/out
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
