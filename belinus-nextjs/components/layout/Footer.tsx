@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+
 
 export function Footer() {
-  const t = useTranslations('footer');
+  const t = (key: string) => key;
 
   return (
     <footer className="bg-black border-t border-white/[0.08] pt-20 pb-8">

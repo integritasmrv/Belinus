@@ -9,6 +9,11 @@ export interface WPPage {
   date?: string;
   modified?: string;
   featured_media_url?: string;
+  yoast_meta?: {
+    title?: string;
+    description?: string;
+    og_image?: string;
+  };
 }
 
 export interface WPPost {
@@ -20,6 +25,8 @@ export interface WPPost {
   date: string;
   modified: string;
   featured_media_url?: string;
+  categories?: number[];
+  tags?: number[];
   author?: { name: string; avatar?: string };
   _embedded?: {
     'wp:featuredmedia'?: Array<{ source_url: string }>;
@@ -29,39 +36,57 @@ export interface WPPost {
 
 export async function getPage(slug: string): Promise<WPPage | null> {
   try {
-    const res = await fetch(`${WP_API_URL}/pages?slug=${slug}&_embed`, { next: { revalidate: 60 } });
+    const res = await fetch(`${WP_API_URL}/pages?slug=${slug}&_embed`, {
+      next: { revalidate: 60 },
+    });
     if (!res.ok) return null;
     const data = await res.json();
     return data[0] || null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 export async function getAllPages(): Promise<WPPage[]> {
   try {
-    const res = await fetch(`${WP_API_URL}/pages?per_page=100&_embed`, { next: { revalidate: 60 } });
+    const res = await fetch(`${WP_API_URL}/pages?per_page=100&_embed`, {
+      next: { revalidate: 60 },
+    });
     if (!res.ok) return [];
     return res.json();
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 export async function getPosts(perPage = 10, page = 1): Promise<WPPost[]> {
   try {
-    const res = await fetch(`${WP_API_URL}/posts?per_page=${perPage}&page=${page}&_embed`, { next: { revalidate: 60 } });
+    const res = await fetch(
+      `${WP_API_URL}/posts?per_page=${perPage}&page=${page}&_embed`,
+      { next: { revalidate: 60 } }
+    );
     if (!res.ok) return [];
     const posts = await res.json();
     return posts.map((p: WPPost) => ({
       ...p,
       featured_media_url: p._embedded?.['wp:featuredmedia']?.[0]?.source_url,
       author: p._embedded?.['author']?.[0]
-        ? { name: p._embedded['author'][0].name, avatar: p._embedded['author'][0].avatar_urls?.['48'] }
+        ? {
+            name: p._embedded['author'][0].name,
+            avatar: p._embedded['author'][0].avatar_urls?.['48'],
+          }
         : undefined,
     }));
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 export async function getPost(slug: string): Promise<WPPost | null> {
   try {
-    const res = await fetch(`${WP_API_URL}/posts?slug=${slug}&_embed`, { next: { revalidate: 60 } });
+    const res = await fetch(`${WP_API_URL}/posts?slug=${slug}&_embed`, {
+      next: { revalidate: 60 },
+    });
     if (!res.ok) return null;
     const data = await res.json();
     if (!data[0]) return null;
@@ -70,8 +95,13 @@ export async function getPost(slug: string): Promise<WPPost | null> {
       ...p,
       featured_media_url: p._embedded?.['wp:featuredmedia']?.[0]?.source_url,
       author: p._embedded?.['author']?.[0]
-        ? { name: p._embedded['author'][0].name, avatar: p._embedded['author'][0].avatar_urls?.['48'] }
+        ? {
+            name: p._embedded['author'][0].name,
+            avatar: p._embedded['author'][0].avatar_urls?.['48'],
+          }
         : undefined,
     };
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }

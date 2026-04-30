@@ -1,18 +1,7 @@
-import { NextIntlClientProvider } from 'next-intl';
 import { notFound } from 'next/navigation';
 import { locales, type Locale } from '@/i18n';
 import { Nav } from '@/components/layout/Nav';
 import { Footer } from '@/components/layout/Footer';
-import en from '@/messages/en.json';
-import nl from '@/messages/nl.json';
-import fr from '@/messages/fr.json';
-import type { AbstractIntlMessages } from 'next-intl';
-
-const messagesMap: Record<Locale, AbstractIntlMessages> = {
-  en: en as AbstractIntlMessages,
-  nl: nl as AbstractIntlMessages,
-  fr: fr as AbstractIntlMessages,
-};
 
 export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
@@ -31,8 +20,6 @@ export default async function LocaleLayout({
     notFound();
   }
 
-  const messages = messagesMap[lang as Locale] || messagesMap.en;
-
   return (
     <html lang={lang}>
       <head>
@@ -44,14 +31,12 @@ export default async function LocaleLayout({
         />
       </head>
       <body className="bg-bg text-white antialiased">
-        <NextIntlClientProvider messages={messages}>
-          <a href="#main-content" className="skip-link">
-            Skip to content
-          </a>
-          <Nav />
-          <main id="main-content">{children}</main>
-          <Footer />
-        </NextIntlClientProvider>
+        <a href="#main-content" className="skip-link">
+          Skip to content
+        </a>
+        <Nav />
+        <main id="main-content">{children}</main>
+        <Footer />
       </body>
     </html>
   );

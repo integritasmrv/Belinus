@@ -27,52 +27,54 @@ export default async function BlogPage({ params }: Props) {
   const posts = await getPosts(20);
 
   return (
-    <section className="pt-32 pb-24 px-6 bg-bg">
-      <div className="max-w-5xl mx-auto">
-        <Eyebrow>Blog</Eyebrow>
-        <h1 className="text-[clamp(32px,4vw,56px)] font-black leading-[1.1] tracking-[-0.02em] text-white mb-12 mt-4">
+    <div className="pt-32 pb-24 px-6 bg-bg">
+      <div className="max-w-4xl mx-auto">
+        <Eyebrow className="text-center mb-4">Blog</Eyebrow>
+        <h1 className="text-[clamp(36px,5vw,60px)] font-black leading-[1.1] tracking-[-0.02em] text-white text-center mb-16">
           News & Insights
         </h1>
 
         {posts.length === 0 ? (
-          <p className="text-white/40 text-center py-20">No posts yet.</p>
+          <div className="text-center text-white/40 py-20">
+            <p>No posts yet. Check back soon.</p>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-8">
             {posts.map((post) => (
-              <Link key={post.slug} href={`/${lang}/blog/${post.slug}`}>
-                <Card hover className="h-full overflow-hidden group">
-                  {post.featured_media_url && (
-                    <div className="aspect-video overflow-hidden">
-                      <img
-                        src={post.featured_media_url}
-                        alt={post.title.rendered}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    </div>
-                  )}
-                  <div className="p-6">
-                    <div className="text-[11px] font-semibold tracking-[0.15em] uppercase text-white/30 mb-3">
-                      {new Date(post.date).toLocaleDateString(lang === 'en' ? 'en-GB' : lang === 'nl' ? 'nl-BE' : 'fr-BE', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </div>
-                    <h2
-                      className="text-lg font-bold text-white leading-snug mb-3 group-hover:text-accent transition-colors line-clamp-2"
-                      dangerouslySetInnerHTML={{ __html: post.title.rendered }}
-                    />
-                    <p
-                      className="text-sm text-white/45 line-clamp-3"
-                      dangerouslySetInnerHTML={{ __html: post.excerpt?.rendered || '' }}
-                    />
-                  </div>
-                </Card>
-              </Link>
+              <article key={post.id} className="border-b border-white/[0.08] pb-8">
+                {post.featured_media_url && (
+                  <img
+                    src={post.featured_media_url}
+                    alt={post.title.rendered}
+                    className="w-full h-48 object-cover mb-6 rounded-none"
+                  />
+                )}
+                <div className="text-[11px] font-semibold tracking-[0.15em] uppercase text-white/30 mb-3">
+                  {new Date(post.date).toLocaleDateString(lang === 'en' ? 'en-GB' : lang === 'nl' ? 'nl-BE' : 'fr-BE', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </div>
+                <h2
+                  className="text-xl md:text-2xl font-bold text-white mb-3"
+                  dangerouslySetInnerHTML={{ __html: post.title.rendered }}
+                />
+                <p
+                  className="text-white/55 text-[15px] leading-relaxed mb-4"
+                  dangerouslySetInnerHTML={{ __html: post.excerpt?.rendered || '' }}
+                />
+                <Link
+                  href={`/${lang}/blog/${post.slug}`}
+                  className="text-[13px] font-semibold tracking-widest uppercase text-accent hover:text-white transition-colors"
+                >
+                  Read more →
+                </Link>
+              </article>
             ))}
           </div>
         )}
       </div>
-    </section>
+    </div>
   );
 }
