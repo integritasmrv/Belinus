@@ -20,6 +20,8 @@ jobs:
         env:
           NEXT_PUBLIC_WP_API_URL: ${{ secrets.NEXT_PUBLIC_WP_API_URL }}
           NEXT_PUBLIC_HATCHET_WEBHOOK_URL: ${{ secrets.NEXT_PUBLIC_HATCHET_WEBHOOK_URL }}
+      - run: ls -la belinus-nextjs/
+      - run: ls -la belinus-nextjs/out/ || echo "out directory not found"
       - uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
